@@ -14,6 +14,22 @@ export function createProxy(config: ProxyConfig = {}) {
   const policyFile = config.policyFile ?? process.env.PAYBOUND_POLICY_FILE;
   const upstream = config.upstreamFacilitator ?? process.env.PAYBOUND_UPSTREAM ?? 'https://x402.org/facilitator';
 
+  // Facilitator compliance warning
+  const knownCompliantFacilitators = ['x402.org', 'coinbase.com', 'cdp.coinbase.com'];
+  const isCompliantFacilitator = knownCompliantFacilitators.some((f) => upstream.includes(f));
+  if (!isCompliantFacilitator) {
+    console.warn(
+      '[paybound] ⚠️  Non-standard facilitator detected: %s',
+      upstream,
+    );
+    console.warn(
+      '[paybound] ⚠️  Ensure your facilitator performs OFAC/KYT compliance screening.',
+    );
+    console.warn(
+      '[paybound] ⚠️  See https://docs.x402.org for compliant facilitator options.',
+    );
+  }
+
   // Load policies
   let policies: PolicySet = new Map();
   if (policyFile) {

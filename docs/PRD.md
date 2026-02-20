@@ -2,7 +2,7 @@
 
 **Version:** 0.1  
 **Date:** February 20, 2026  
-**Author:** James (Chief of Staff) for Paybound Team  
+**Author:** Paybound Team  
 **Status:** Draft — Awaiting Ben's review
 
 ---

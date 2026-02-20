@@ -71,6 +71,14 @@ policies:
 
 🚧 **Pre-alpha** — Architecture and specs phase. Not yet functional.
 
+## Legal
+
+Paybound is policy enforcement and audit software. It does not custody, transmit, or control funds. All payment settlement is handled by third-party facilitators (e.g., Coinbase CDP). Paybound is not a money transmitter, payment processor, or financial institution. This software is provided as-is. Consult qualified legal counsel before deploying in production.
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for vulnerability reporting.
+
 ## License
 
 MIT
