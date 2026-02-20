@@ -158,12 +158,12 @@ Open-source core drives adoption. Dashboard/analytics drives revenue.
 - Mobile SDK
 - Custom facilitator (use existing ones)
 
-## Open Questions
+## Key Decisions (see docs/architecture/decisions.md for full reasoning)
 
-1. Should the proxy be self-hosted or SaaS-first?
-2. How to handle the `upto` scheme when x402 ships it? (variable amounts = harder policy enforcement)
-3. What's the right default policy for a new agent? (permissive with alerts vs. restrictive by default)
-4. Should we build our own facilitator eventually for deeper control?
+1. **Open-core model** — Self-hosted proxy + SDK (MIT). SaaS dashboard + analytics (proprietary). Follows PostHog/Sentry/Grafana playbook.
+2. **Design for `upto` from day one** — Policy schema supports both `exact` and `upto` schemes even though x402 only ships `exact` today. Prevents breaking migration later.
+3. **Restrictive defaults with easy escalation** — New agents get $1/tx, $10/hr, $50/day limits. First violation = helpful alert that teaches why Paybound exists. The product sells itself through the constraint.
+4. **No custom facilitator** — Use Coinbase/Cloudflare facilitators. We're the governance layer, not the payment rail. Stripe didn't build a bank.
 
 ---
 

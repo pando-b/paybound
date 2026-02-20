@@ -1,0 +1,10 @@
+{
+  "permission": {
+    "read": {
+      "/Users/jamesservice/.openclaw/workspace/projects/paybound/.opencode/get-shit-done/*": "allow"
+    },
+    "external_directory": {
+      "/Users/jamesservice/.openclaw/workspace/projects/paybound/.opencode/get-shit-done/*": "allow"
+    }
+  }
+}
