@@ -1,5 +1,7 @@
 packages:
-  - 'packages/core'
-  - 'packages/proxy'
-  - 'packages/sdk'
-  - 'packages/ledger'
+  - packages/core
+  - packages/proxy
+  - packages/sdk
+  - packages/ledger
+
+onlyBuiltDependencies: better-sqlite3 esbuild
