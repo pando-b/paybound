@@ -140,3 +140,6 @@ vite.config.ts.timestamp-*
 dist
 node_modules
 *.db
+.claude/
+.gemini/
+.opencode/

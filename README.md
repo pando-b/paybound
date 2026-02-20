@@ -1,5 +1,7 @@
 # Paybound
 
+> ⚠️ **Pre-alpha** — Under active development. APIs will change. Not yet published to npm.
+
 **Spending controls for AI agents.**
 
 Paybound is the financial governance layer for autonomous AI agents making real payments via [x402](https://x402.org) and other payment protocols. Budgets, policies, audit trails, and circuit breakers — so your agents spend within bounds.
@@ -67,9 +69,13 @@ policies:
     on_violation: block
 ```
 
+## Examples
+
+See [`examples/basic.ts`](examples/basic.ts) for a working demo.
+
 ## Project Status
 
-🚧 **Pre-alpha** — Architecture and specs phase. Not yet functional.
+🚧 **Pre-alpha** — Core engine works with 23 passing tests. Not yet published to npm. See [CONTRIBUTING.md](CONTRIBUTING.md) to get involved.
 
 ## Legal
 
