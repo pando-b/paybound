@@ -69,6 +69,12 @@ importers:
       '@hono/node-server':
         specifier: ^1.19.9
         version: 1.19.9(hono@4.12.0)
+      '@paybound/core':
+        specifier: workspace:*
+        version: link:../core
+      '@paybound/ledger':
+        specifier: workspace:*
+        version: link:../ledger
       hono:
         specifier: ^4.12.0
         version: 4.12.0

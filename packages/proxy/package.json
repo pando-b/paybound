@@ -16,6 +16,8 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.19.9",
+    "@paybound/core": "workspace:*",
+    "@paybound/ledger": "workspace:*",
     "hono": "^4.12.0"
   }
 }

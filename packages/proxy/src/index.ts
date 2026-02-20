@@ -1,9 +1,7 @@
 import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
-import { evaluate } from '../../core/src/evaluator';
-import { loadPolicies } from '../../core/src/loader';
-import { Ledger } from '../../ledger/src/index';
-import type { Transaction, PolicySet } from '../../core/src/types';
+import { evaluate, loadPolicies, Ledger } from './deps';
+import type { Transaction, PolicySet } from '@paybound/core';
 
 export interface ProxyConfig {
   port?: number;
