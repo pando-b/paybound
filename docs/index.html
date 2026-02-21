@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paybound — Spending Controls for AI Agents</title>
+  <meta name="description" content="Open-source financial governance for autonomous AI agents. Policy engine, transaction ledger, and proxy facilitator for x402 payment controls.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0a0b;
+      --bg-subtle: #111113;
+      --bg-card: #16161a;
+      --border: #222228;
+      --text: #ededef;
+      --text-muted: #8b8b8e;
+      --text-dim: #5a5a5d;
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.15);
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --cyan: #06b6d4;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Layout */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Nav */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: rgba(10, 10, 11, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    nav .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+
+    .logo {
+      font-weight: 700;
+      font-size: 1.2rem;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-icon {
+      width: 28px;
+      height: 28px;
+      background: var(--accent);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5558e6;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 24px var(--accent-glow);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--text-dim);
+      background: var(--bg-subtle);
+    }
+
+    .btn-sm {
+      padding: 8px 16px;
+      font-size: 0.85rem;
+    }
+
+    /* Badge */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-alpha {
+      background: rgba(245, 158, 11, 0.12);
+      color: var(--amber);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .badge-alpha::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--amber);
+    }
+
+    /* Hero */
+    .hero {
+      padding: 160px 0 100px;
+      text-align: center;
+      position: relative;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 400px;
+      background: radial-gradient(ellipse, var(--accent-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin: 20px 0;
+    }
+
+    .hero h1 .gradient {
+      background: linear-gradient(135deg, var(--accent), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero .subtitle {
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto 40px;
+      line-height: 1.6;
+    }
+
+    .hero-ctas {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* Features Grid */
+    .section {
+      padding: 100px 0;
+    }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+
+    .section-desc {
+      color: var(--text-muted);
+      max-width: 600px;
+      margin-bottom: 48px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      transition: all 0.2s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--text-dim);
+      transform: translateY(-2px);
+    }
+
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      margin-bottom: 16px;
+    }
+
+    .feature-icon-policy { background: rgba(99, 102, 241, 0.12); }
+    .feature-icon-ledger { background: rgba(6, 182, 212, 0.12); }
+    .feature-icon-proxy { background: rgba(34, 197, 94, 0.12); }
+    .feature-icon-breaker { background: rgba(239, 68, 68, 0.12); }
+
+    .feature-card h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .feature-card p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    /* Architecture */
+    .arch-section {
+      padding: 80px 0;
+    }
+
+    .arch-diagram {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 40px;
+      margin-top: 48px;
+      overflow-x: auto;
+    }
+
+    .arch-flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      flex-wrap: nowrap;
+      min-width: 700px;
+    }
+
+    .arch-node {
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .arch-box {
+      padding: 16px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    .arch-label {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-top: 8px;
+      font-family: var(--mono);
+    }
+
+    .arch-box-agent {
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: var(--accent);
+    }
+
+    .arch-box-paybound {
+      background: rgba(34, 197, 94, 0.12);
+      border: 2px solid rgba(34, 197, 94, 0.4);
+      color: var(--green);
+      padding: 20px 32px;
+    }
+
+    .arch-box-facilitator {
+      background: rgba(6, 182, 212, 0.12);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      color: var(--cyan);
+    }
+
+    .arch-box-resource {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: var(--amber);
+    }
+
+    .arch-arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 12px;
+      flex-shrink: 0;
+    }
+
+    .arch-arrow-line {
+      font-family: var(--mono);
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      letter-spacing: 2px;
+    }
+
+    .arch-arrow-label {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      white-space: nowrap;
+    }
+
+    /* Code example */
+    .code-section {
+      padding: 80px 0;
+    }
+
+    .code-block {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 48px;
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0,0,0,0.2);
+    }
+
+    .code-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .code-dot-red { background: #ff5f57; }
+    .code-dot-yellow { background: #febc2e; }
+    .code-dot-green { background: #28c840; }
+
+    .code-filename {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      margin-left: 8px;
+    }
+
+    .code-body {
+      padding: 24px;
+      overflow-x: auto;
+    }
+
+    .code-body pre {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      line-height: 1.7;
+      color: var(--text-muted);
+    }
+
+    .code-body .kw { color: #c084fc; }
+    .code-body .fn { color: #60a5fa; }
+    .code-body .str { color: #34d399; }
+    .code-body .num { color: #f59e0b; }
+    .code-body .cm { color: var(--text-dim); }
+    .code-body .type { color: #f472b6; }
+
+    /* Safety */
+    .safety-section {
+      padding: 80px 0;
+    }
+
+    .safety-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-top: 48px;
+    }
+
+    .safety-item {
+      display: flex;
+      gap: 16px;
+      padding: 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+
+    .safety-icon {
+      font-size: 1.4rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .safety-item h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .safety-item p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* CTA */
+    .cta-section {
+      padding: 100px 0;
+      text-align: center;
+    }
+
+    .cta-section h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .cta-section p {
+      color: var(--text-muted);
+      max-width: 500px;
+      margin: 0 auto 32px;
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 0;
+      text-align: center;
+    }
+
+    footer p {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+    }
+
+    footer a {
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+
+    footer a:hover { color: var(--text); }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .hero { padding: 120px 0 60px; }
+      .section { padding: 60px 0; }
+      .arch-diagram { padding: 24px; }
+      .features-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="container">
+      <div class="logo">
+        <div class="logo-icon">⛨</div>
+        Paybound
+      </div>
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#architecture">Architecture</a></li>
+        <li><a href="#code">Quick Start</a></li>
+        <li><a href="https://github.com/pando-b/paybound" target="_blank" class="btn btn-sm btn-ghost">★ GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <span class="badge badge-alpha">Pre-Alpha</span>
+      <h1>Spending controls<br>for <span class="gradient">AI agents</span></h1>
+      <p class="subtitle">
+        Open-source financial governance for autonomous agents making x402 payments. 
+        Policy engine, audit trail, and circuit breakers — so your agents spend smart.
+      </p>
+      <div class="hero-ctas">
+        <a href="https://github.com/pando-b/paybound" target="_blank" class="btn btn-primary">
+          ★ Star on GitHub
+        </a>
+        <a href="https://discord.com/invite/cdp" target="_blank" class="btn btn-ghost">
+          Join Community
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-label">Features</div>
+      <h2 class="section-title">Everything a CFO would want.<br>Built for machines.</h2>
+      <p class="section-desc">
+        Paybound sits between your AI agents and the payment facilitator, enforcing policies before money moves.
+      </p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon feature-icon-policy">🛡</div>
+          <h3>Policy Engine</h3>
+          <p>Per-agent budgets, per-transaction limits, time-windowed spending caps, and allowlists. Define rules in YAML, enforce them at the proxy.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon feature-icon-ledger">📊</div>
+          <h3>Transaction Ledger</h3>
+          <p>Full audit trail with cost attribution. Every payment attempt is logged — approved or denied — with the policy decision and reasoning.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon feature-icon-proxy">🔄</div>
+          <h3>Proxy Facilitator</h3>
+          <p>Transparent interception of x402 payment flows. Drop-in replacement that agents use without code changes. Forwards to any upstream facilitator.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon feature-icon-breaker">⚡</div>
+          <h3>Circuit Breakers</h3>
+          <p>Automatic spend freezes when anomalies are detected. Rolling windows catch runaway agents before they drain your budget.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture -->
+  <section class="arch-section" id="architecture">
+    <div class="container">
+      <div class="section-label">Architecture</div>
+      <h2 class="section-title">Simple by design</h2>
+      <p class="section-desc">
+        A pass-through proxy with a policy engine and a SQLite ledger. Paybound never touches, holds, or redirects funds.
+      </p>
+      <div class="arch-diagram">
+        <div class="arch-flow">
+          <div class="arch-node">
+            <div class="arch-box arch-box-agent">🤖 AI Agent</div>
+            <div class="arch-label">@paybound/sdk</div>
+          </div>
+          <div class="arch-arrow">
+            <div class="arch-arrow-line">——→</div>
+            <div class="arch-arrow-label">x402 request</div>
+          </div>
+          <div class="arch-node">
+            <div class="arch-box arch-box-paybound">⛨ Paybound Proxy</div>
+            <div class="arch-label">policy · ledger · breakers</div>
+          </div>
+          <div class="arch-arrow">
+            <div class="arch-arrow-line">——→</div>
+            <div class="arch-arrow-label">if approved</div>
+          </div>
+          <div class="arch-node">
+            <div class="arch-box arch-box-facilitator">🏦 Facilitator</div>
+            <div class="arch-label">settlement + compliance</div>
+          </div>
+          <div class="arch-arrow">
+            <div class="arch-arrow-line">——→</div>
+            <div class="arch-arrow-label">payment settled</div>
+          </div>
+          <div class="arch-node">
+            <div class="arch-box arch-box-resource">🌐 Resource</div>
+            <div class="arch-label">API / content</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Code -->
+  <section class="code-section" id="code">
+    <div class="container">
+      <div class="section-label">Quick Start</div>
+      <h2 class="section-title">Up and running in minutes</h2>
+      <p class="section-desc">
+        Drop in the SDK, point your agents at the proxy, define policies in YAML. That's it.
+      </p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-dot code-dot-red"></span>
+          <span class="code-dot code-dot-yellow"></span>
+          <span class="code-dot code-dot-green"></span>
+          <span class="code-filename">example.ts</span>
+        </div>
+        <div class="code-body">
+<pre><span class="kw">import</span> { <span class="fn">PayboundClient</span> } <span class="kw">from</span> <span class="str">'@paybound/sdk'</span>;
+
+<span class="cm">// Point your agent at the Paybound proxy</span>
+<span class="kw">const</span> client = <span class="kw">new</span> <span class="fn">PayboundClient</span>({
+  proxyUrl: <span class="str">'http://localhost:4020'</span>,
+  agentId:  <span class="str">'research-bot-1'</span>,
+});
+
+<span class="cm">// Make x402 payments — Paybound enforces your policies</span>
+<span class="kw">const</span> response = <span class="kw">await</span> client.<span class="fn">fetch</span>(
+  <span class="str">'https://api.example.com/data'</span>,
+  { method: <span class="str">'GET'</span> }
+);
+
+<span class="cm">// ✅ Approved: under budget, within limits</span>
+<span class="cm">// ❌ Denied:  over budget → logged + blocked</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Safety -->
+  <section class="safety-section">
+    <div class="container">
+      <div class="section-label">Safety First</div>
+      <h2 class="section-title">What Paybound doesn't do</h2>
+      <p class="section-desc">
+        These aren't just design choices — they're hard constraints.
+      </p>
+      <div class="safety-grid">
+        <div class="safety-item">
+          <span class="safety-icon">🚫</span>
+          <div>
+            <h4>Never custodies funds</h4>
+            <p>Paybound never holds, escrows, or controls money. All settlement flows through the upstream facilitator.</p>
+          </div>
+        </div>
+        <div class="safety-item">
+          <span class="safety-icon">🚫</span>
+          <div>
+            <h4>Never redirects payments</h4>
+            <p>Payment destinations are pass-through. Paybound can block a payment, but never change where it goes.</p>
+          </div>
+        </div>
+        <div class="safety-item">
+          <span class="safety-icon">🚫</span>
+          <div>
+            <h4>Never issues tokens</h4>
+            <p>No token, no coin, no points. Paybound is governance infrastructure, not a financial product.</p>
+          </div>
+        </div>
+        <div class="safety-item">
+          <span class="safety-icon">✅</span>
+          <div>
+            <h4>Fully open source</h4>
+            <p>MIT licensed. Read every line. Self-host it. Fork it. The code is the trust layer.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="container">
+      <h2>Your agents are spending money.<br>Shouldn't someone be watching?</h2>
+      <p>
+        Paybound is pre-alpha. We're looking for feedback from builders working with x402 and autonomous agents.
+      </p>
+      <div class="cta-buttons">
+        <a href="https://github.com/pando-b/paybound" target="_blank" class="btn btn-primary">
+          ★ Star on GitHub
+        </a>
+        <a href="https://discord.com/invite/cdp" target="_blank" class="btn btn-ghost">
+          Join the x402 Community
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>
+        Paybound is open-source software (MIT). Built for the <a href="https://github.com/coinbase/x402" target="_blank">x402</a> ecosystem.<br>
+        Not a financial product. Not a money transmitter. Just code.
+      </p>
+    </div>
+  </footer>
+
+</body>
+</html>
