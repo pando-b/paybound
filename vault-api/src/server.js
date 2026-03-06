@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 import { serve } from '@hono/node-server';
 import Database from 'better-sqlite3';
 import jwt from 'jsonwebtoken';
@@ -60,6 +61,13 @@ CREATE TABLE IF NOT EXISTS tokens (
 db.exec(initSql);
 
 const app = new Hono();
+
+// CORS for dashboard
+app.use('*', cors({
+  origin: '*',
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
+}));
 
 function now() {
   return Date.now();
