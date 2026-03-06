@@ -1,0 +1,16 @@
+{
+  "name": "vault-api",
+  "version": "0.1.0-alpha",
+  "private": true,
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.12.1",
+    "better-sqlite3": "^11.0.0",
+    "hono": "^4.6.0",
+    "jsonwebtoken": "^9.0.2"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "paybound-cli",
+  "version": "0.1.0-alpha",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "paybound": "cli.js"
+  },
+  "dependencies": {
+    "commander": "^12.1.0"
+  }
+}

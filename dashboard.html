@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paybound Vault — Dashboard</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0e17; color: #e0e6f0; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; padding: 24px; }
+.header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; border-bottom: 1px solid #1e2a3a; padding-bottom: 20px; }
+.header h1 { font-size: 24px; font-weight: 700; color: #fff; }
+.header .badge { background: #10b981; color: #000; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
+.card { background: #111827; border: 1px solid #1e2a3a; border-radius: 12px; padding: 20px; }
+.card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #6b7a8d; margin-bottom: 16px; }
+.stat { font-size: 36px; font-weight: 700; color: #fff; }
+.stat-label { font-size: 12px; color: #6b7a8d; margin-top: 4px; }
+.stat-row { display: flex; gap: 40px; }
+.chain-viz { background: #111827; border: 1px solid #1e2a3a; border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+.chain-viz h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #6b7a8d; margin-bottom: 20px; }
+.chain { display: flex; align-items: center; gap: 0; flex-wrap: wrap; padding: 8px 0; }
+.token-node { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; flex-shrink: 0; position: relative; }
+.token-node.active { background: #10b981; color: #000; box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); }
+.token-node.spent { background: #374151; color: #6b7a8d; }
+.token-node.blocked { background: #ef4444; color: #fff; box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
+.chain-arrow { color: #374151; font-size: 20px; margin: 0 6px; flex-shrink: 0; }
+.chain-arrow.active { color: #10b981; }
+.token-label { position: absolute; bottom: -20px; font-size: 9px; color: #6b7a8d; white-space: nowrap; }
+.audit-table { width: 100%; border-collapse: collapse; }
+.audit-table th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7a8d; padding: 8px 12px; border-bottom: 1px solid #1e2a3a; }
+.audit-table td { padding: 10px 12px; border-bottom: 1px solid #111827; font-size: 13px; }
+.audit-table tr:hover { background: #1a2332; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.tag-retrieve { background: #064e3b; color: #34d399; }
+.tag-revoke { background: #7f1d1d; color: #fca5a5; }
+.tag-replay { background: #78350f; color: #fbbf24; }
+.tag-seq { background: #1e293b; color: #94a3b8; font-family: 'SF Mono', monospace; }
+.cred-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #1a2332; }
+.cred-row:last-child { border: none; }
+.cred-name { font-weight: 600; color: #fff; min-width: 80px; }
+.cred-status { font-size: 11px; padding: 2px 8px; border-radius: 4px; }
+.cred-active { background: #064e3b; color: #34d399; }
+.cred-revoked { background: #7f1d1d; color: #fca5a5; }
+.cred-encrypted { color: #6b7a8d; font-size: 12px; }
+.agent-card { display: flex; align-items: center; gap: 16px; }
+.agent-avatar { width: 48px; height: 48px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.agent-info .name { font-size: 18px; font-weight: 700; color: #fff; }
+.agent-info .id { font-size: 11px; color: #6b7a8d; font-family: monospace; }
+.full-width { grid-column: 1 / -1; }
+.refresh-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.live-dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; display: inline-block; margin-right: 8px; animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+.refresh-text { font-size: 11px; color: #6b7a8d; }
+.cost-bar { height: 6px; background: #1e293b; border-radius: 3px; margin-top: 8px; overflow: hidden; }
+.cost-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+.cost-fill.green { background: linear-gradient(90deg, #10b981, #34d399); }
+.cost-fill.yellow { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.cost-fill.red { background: linear-gradient(90deg, #ef4444, #f87171); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🔐 Paybound Vault</h1>
+  <span class="badge">Alpha</span>
+  <span class="badge" style="background: #3b82f6;">Single-Use Tokens</span>
+</div>
+
+<div class="refresh-bar">
+  <div><span class="live-dot"></span><span class="refresh-text">Live — auto-refresh 3s</span></div>
+  <div class="refresh-text">Org: <strong style="color:#fff">Acme Corp</strong></div>
+</div>
+
+<div class="grid">
+  <!-- Agent Card -->
+  <div class="card">
+    <h2>Agent</h2>
+    <div class="agent-card">
+      <div class="agent-avatar">🤖</div>
+      <div class="agent-info">
+        <div class="name" id="agent-name">agent-7</div>
+        <div class="id" id="agent-id">loading...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Token Stats -->
+  <div class="card">
+    <h2>Token Chain</h2>
+    <div class="stat-row">
+      <div>
+        <div class="stat" id="current-seq">—</div>
+        <div class="stat-label">Current Seq</div>
+      </div>
+      <div>
+        <div class="stat" id="total-actions">—</div>
+        <div class="stat-label">Total Actions</div>
+      </div>
+      <div>
+        <div class="stat" id="replay-blocked" style="color: #ef4444;">0</div>
+        <div class="stat-label">Replays Blocked</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Credentials -->
+  <div class="card">
+    <h2>Credentials</h2>
+    <div id="cred-list">
+      <div class="cred-row">
+        <span class="cred-name">openai</span>
+        <span class="cred-status cred-active">ACTIVE</span>
+        <span class="cred-encrypted">AES-256-GCM ••••••123</span>
+      </div>
+      <div class="cred-row">
+        <span class="cred-name">stripe</span>
+        <span class="cred-status cred-revoked">REVOKED</span>
+        <span class="cred-encrypted">AES-256-GCM ••••••456</span>
+      </div>
+      <div class="cred-row">
+        <span class="cred-name">github</span>
+        <span class="cred-status cred-active">ACTIVE</span>
+        <span class="cred-encrypted">AES-256-GCM ••••••789</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cost Signal -->
+  <div class="card">
+    <h2>Estimated API Cost (from retrieval frequency)</h2>
+    <div style="margin-top: 8px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+        <span>openai</span><span style="color:#34d399;">3 retrievals → ~$0.12</span>
+      </div>
+      <div class="cost-bar"><div class="cost-fill green" style="width:30%"></div></div>
+    </div>
+    <div style="margin-top: 12px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+        <span>stripe</span><span style="color:#fca5a5;">REVOKED</span>
+      </div>
+      <div class="cost-bar"><div class="cost-fill red" style="width:15%"></div></div>
+    </div>
+    <div style="margin-top: 12px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+        <span>github</span><span style="color:#34d399;">1 retrieval → ~$0.00</span>
+      </div>
+      <div class="cost-bar"><div class="cost-fill green" style="width:10%"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Token Chain Visualization -->
+<div class="chain-viz">
+  <h2>Token Chain — Single-Use Sequence</h2>
+  <div class="chain" id="token-chain"></div>
+</div>
+
+<!-- Audit Log -->
+<div class="card full-width" style="grid-column: 1/-1;">
+  <h2>Audit Log — Full Chain of Custody</h2>
+  <table class="audit-table" id="audit-table">
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Agent</th>
+        <th>Action</th>
+        <th>Tool</th>
+        <th>Token Seq</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="audit-body"></tbody>
+  </table>
+</div>
+
+<script>
+const API = 'http://localhost:3001';
+let apiKey = null;
+let lastAuditCount = 0;
+
+async function init() {
+  // We'll populate from the demo data
+  renderChain([
+    { seq: 1, tool: 'openai', status: 'spent' },
+    { seq: 2, tool: 'stripe', status: 'spent' },
+    { seq: 3, tool: 'github', status: 'spent' },
+    { seq: 4, tool: null, status: 'active' },
+  ]);
+
+  renderAudit([
+    { ts: Date.now() - 4000, agent: 'agent-7', action: 'retrieve', tool: 'openai', seq: 1, status: 'ok' },
+    { ts: Date.now() - 3000, agent: 'agent-7', action: 'retrieve', tool: 'stripe', seq: 2, status: 'ok' },
+    { ts: Date.now() - 2000, agent: 'agent-7', action: 'retrieve', tool: 'github', seq: 3, status: 'ok' },
+    { ts: Date.now() - 1500, agent: 'agent-7', action: 'revoke', tool: 'stripe', seq: null, status: 'revoked' },
+    { ts: Date.now() - 1000, agent: 'agent-7', action: 'retrieve', tool: 'stripe', seq: 4, status: 'blocked' },
+    { ts: Date.now() - 500, agent: 'agent-7', action: 'replay', tool: 'openai', seq: 1, status: 'rejected' },
+  ]);
+
+  document.getElementById('current-seq').textContent = '4';
+  document.getElementById('total-actions').textContent = '4';
+  document.getElementById('replay-blocked').textContent = '1';
+  document.getElementById('agent-id').textContent = 'Single-use token auth • AES-256-GCM';
+}
+
+function renderChain(tokens) {
+  const container = document.getElementById('token-chain');
+  container.innerHTML = '';
+  tokens.forEach((t, i) => {
+    if (i > 0) {
+      const arrow = document.createElement('span');
+      arrow.className = 'chain-arrow' + (t.status === 'active' ? ' active' : '');
+      arrow.textContent = '→';
+      container.appendChild(arrow);
+    }
+    const node = document.createElement('div');
+    node.className = 'token-node ' + t.status;
+    node.textContent = t.seq;
+    const label = document.createElement('div');
+    label.className = 'token-label';
+    if (t.status === 'spent') label.textContent = t.tool;
+    else if (t.status === 'active') label.textContent = 'current';
+    else if (t.status === 'blocked') label.textContent = 'blocked';
+    node.appendChild(label);
+    container.appendChild(node);
+  });
+}
+
+function renderAudit(events) {
+  const tbody = document.getElementById('audit-body');
+  tbody.innerHTML = '';
+  events.forEach(e => {
+    const tr = document.createElement('tr');
+    const time = new Date(e.ts).toLocaleTimeString();
+    const actionTag = e.action === 'retrieve' ? 'tag-retrieve' : e.action === 'revoke' ? 'tag-revoke' : 'tag-replay';
+    const actionLabel = e.action === 'replay' ? 'REPLAY ATTEMPT' : e.action.toUpperCase();
+    const statusColor = e.status === 'ok' ? '#10b981' : e.status === 'revoked' ? '#f59e0b' : '#ef4444';
+    const statusLabel = e.status === 'ok' ? '✓ OK' : e.status === 'revoked' ? '⚠ REVOKED' : e.status === 'blocked' ? '✗ BLOCKED' : '✗ REJECTED';
+    tr.innerHTML = `
+      <td style="color:#6b7a8d">${time}</td>
+      <td>${e.agent}</td>
+      <td><span class="tag ${actionTag}">${actionLabel}</span></td>
+      <td style="color:#fff">${e.tool}</td>
+      <td>${e.seq ? '<span class="tag tag-seq">#' + e.seq + '</span>' : '—'}</td>
+      <td style="color:${statusColor};font-weight:600">${statusLabel}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+init();
+</script>
+</body>
+</html>
