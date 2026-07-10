@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import { evaluate, loadPolicies, Ledger } from './deps';
 import type { Transaction, PolicySet } from '@paybound/core';
+import { checkAgentTrust, extractPayer, agentTrustEnabled, shouldBlock, type AgentTrust } from './agentTrust';
 
 export interface ProxyConfig {
   port?: number;
@@ -110,6 +111,29 @@ export function createProxy(config: ProxyConfig = {}) {
       );
     }
 
+    // Optional 402.coffee agent-trust screen (off unless PAYBOUND_402COFFEE_VERIFY is set).
+    // Paybound checks YOUR policy on the agent; 402.coffee checks the agent's on-chain payment
+    // behaviour (does it refuse over-priced scams / verify the recipient). Fail-open by design.
+    let agentTrust: AgentTrust | null = null;
+    if (agentTrustEnabled()) {
+      agentTrust = await checkAgentTrust(extractPayer(body));
+      const decision = shouldBlock(agentTrust);
+      if (decision.block) {
+        ledger.record({
+          agentId: tx.agentId,
+          resourceUrl: tx.resourceUrl,
+          amount: tx.amount,
+          currency: tx.currency,
+          scheme: tx.scheme,
+          timestamp: Date.now(),
+          policyResult: 'deny',
+          policyReason: decision.reason ?? '402coffee_trust',
+          matchedPolicy: '402.coffee',
+        });
+        return c.json({ error: '402coffee_trust', reason: decision.reason, agentTrust }, 403);
+      }
+    }
+
     // If allowed, proxy to upstream facilitator
     try {
       const upstreamRes = await fetch(`${upstream}/verify`, {
@@ -123,6 +147,7 @@ export function createProxy(config: ProxyConfig = {}) {
         body: JSON.stringify(body),
       });
       const upstreamBody = await upstreamRes.json();
+      if (agentTrust) c.header('X-Paybound-Agent-Trust', JSON.stringify(agentTrust));
       return c.json(upstreamBody, upstreamRes.status as any);
     } catch (err) {
       return c.json({ error: 'upstream_error', message: String(err) }, 502);
