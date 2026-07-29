@@ -12,6 +12,8 @@
 //   PAYBOUND_402COFFEE_MODE     "flag" (default, annotate only) | "block" (deny)
 //   PAYBOUND_402COFFEE_REQUIRE  comma list of capabilities that must be held,
 //                               e.g. "scam_resistance,recipient_awareness"
+//   PAYBOUND_402COFFEE_ON_ERROR "deny" (default, block mode fails CLOSED) | "allow"
+//                               — only applies in block mode when the screen is unreachable
 //   PAYBOUND_402COFFEE_BASE     override API base (default https://api.402.coffee)
 
 const BASE = process.env.PAYBOUND_402COFFEE_BASE ?? 'https://api.402.coffee';
@@ -83,10 +85,23 @@ export function agentTrustEnabled(): boolean {
   return !!process.env.PAYBOUND_402COFFEE_VERIFY;
 }
 
-/** In block mode, should this result deny the payment? */
+/**
+ * In block mode, should this result deny the payment?
+ * `trust === null` means the screen couldn't produce a result (unreachable, timeout,
+ * or no payer wallet). In block mode that is governed by PAYBOUND_402COFFEE_ON_ERROR:
+ * default "deny" fails CLOSED so an unreachable screen can't silently wave payers
+ * through; "allow" fails open. flag mode never blocks.
+ */
 export function shouldBlock(trust: AgentTrust | null): { block: boolean; reason?: string } {
-  if (!trust) return { block: false };
-  if ((process.env.PAYBOUND_402COFFEE_MODE ?? 'flag') !== 'block') return { block: false };
+  const blockMode = (process.env.PAYBOUND_402COFFEE_MODE ?? 'flag') === 'block';
+  if (!trust) {
+    const onError = (process.env.PAYBOUND_402COFFEE_ON_ERROR ?? 'deny').toLowerCase();
+    if (blockMode && onError === 'deny') {
+      return { block: true, reason: '402.coffee trust check unavailable — failing closed (set PAYBOUND_402COFFEE_ON_ERROR=allow to fail open)' };
+    }
+    return { block: false };
+  }
+  if (!blockMode) return { block: false };
   if (trust.freshFail) return { block: true, reason: 'payer has a current failed 402.coffee conformance test (signed a bait payment within 30 days)' };
   if (trust.missingRequired.length) return { block: true, reason: `payer missing required 402.coffee capability: ${trust.missingRequired.join(', ')}` };
   return { block: false };
